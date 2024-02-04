@@ -116,6 +116,7 @@ button img {
   height: 100%;
   background-color: #3498db; /* Lift color */
   border-radius: 5px;
+  transform: rotateY(90deg);
 }
 
 .lift-container {
@@ -124,6 +125,8 @@ button img {
   width: 50px; 
   height: 80px; 
   background-color: #3498db; 
+  border: solid 1px #000;
+  transition: bottom 2s ease-in-out;
 }
 
 .floor-number {
