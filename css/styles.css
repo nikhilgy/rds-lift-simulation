@@ -37,6 +37,8 @@ body {
   }
 }
 
+
+
 .input-field {
   margin-bottom: 10px;
 }
@@ -75,11 +77,11 @@ button img {
 }
 
 .elevator-container {
-  width: 90%;
+  /* width: 90%; */
   display: flex;
   flex-direction: column;
   text-align: center;
-  margin: 2rem;
+  margin: 5rem;
   position: relative;
 }
 
@@ -94,6 +96,11 @@ button img {
   height: 1px;
   width: 100%;
   background-color: #333;
+}
+
+.button-container {
+  display: flex;
+  flex-direction: column;
 }
 
 .button-container button {
@@ -124,8 +131,7 @@ button img {
   position: absolute;
   bottom: 4rem; /* half of height of floor container*/ 
   width: 50px; 
-  height: 80px; 
-  /* background-color: #3498db;  */
+  height: 80px;
   border: solid 1px #000;
   transition: bottom 2s ease-in-out;
   overflow-x: hidden;
@@ -142,4 +148,39 @@ display: flex;
 align-items: center;
 justify-content: center;
 margin-left: auto; 
+}
+
+footer {
+  background-color: #333;
+  color: white;
+  text-align: center;
+  padding: 10px;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+}
+
+footer p {
+  margin: 0;
+}
+
+footer a {
+  color: white;
+  margin-left: 5px;
+  text-decoration: dashed;
+}
+
+
+@media only screen and (max-width: 767px) {
+  /* Styles for small screens (e.g., smartphones) */
+
+  .elevator-container {
+    margin: 3rem 1rem;
+  }
+
+  .lift-container {
+    width: 25px;
+    height: 50px;
+  }
+
 }

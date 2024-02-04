@@ -37,10 +37,10 @@ const moveLift = function(lift){
     
   }
 
-  // TODO openDoor animation at floorCalled
-  // openDoors()
+  
+  // animation for opening door
   const childLift = liftElement.children
-  console.log("ChildLift: ", childLift);
+  // console.log("ChildLift: ", childLift);
   setTimeout(() => {
     childLift[0].style.transform = 'translateX(-100%)';
 
