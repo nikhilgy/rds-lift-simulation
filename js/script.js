@@ -51,9 +51,9 @@ const moveLift = function(lift){
       lift.currentFloor = lift.targetFloor
       lift.direction = null;
       lift.targetFloor = null;
-    }, 2000); 
+    }, 2500); 
 
-  }, (2 * Math.abs(lift.targetFloor - lift.currentFloor))*1000)
+  }, 2500)//(2 * Math.abs(lift.targetFloor - lift.currentFloor))*1000)
 
 
 
