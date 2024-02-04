@@ -34,15 +34,30 @@ const moveLift = function(lift){
     console.log("MoveDown");
     liftElement.style.transition = `bottom ${2 * Math.abs(lift.targetFloor - lift.currentFloor)}s ease-in-out`
     liftElement.style.bottom = `${currentBottomRem + (8*(lift.targetFloor - lift.currentFloor))}rem`
+    
   }
 
   // TODO openDoor animation at floorCalled
   // openDoors()
+  const childLift = liftElement.children
+  console.log("ChildLift: ", childLift);
+  setTimeout(() => {
+    childLift[0].style.transform = 'translateX(-100%)';
 
-  // Update elevator's state
-  lift.currentFloor = lift.targetFloor
-  lift.direction = null;
-  lift.targetFloor = null;
+    setTimeout(() => {
+      childLift[0].style.transform = 'translateX(0)';
+
+      // Update elevator's state
+      lift.currentFloor = lift.targetFloor
+      lift.direction = null;
+      lift.targetFloor = null;
+    }, 2000); 
+
+  }, (2 * Math.abs(lift.targetFloor - lift.currentFloor))*1000)
+
+
+
+
   // console.log("After Lift Status: ", liftStatus);
   
 }
