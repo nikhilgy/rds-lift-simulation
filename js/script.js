@@ -15,29 +15,12 @@ const createLiftState = function(numOfLifts){
 
 }
 
-// TODO verify dry run and other scenarios of this logic
-const moveLift = function(lift){
-  // console.log("Before Lift Status: ", liftStatus);
-  const liftElement = document.getElementsByClassName(`lift-${lift.liftNo}`)[0]
-  const currentBottom = parseFloat(getComputedStyle(liftElement).bottom)
-  const currentBottomRem = currentBottom / parseFloat(getComputedStyle(document.documentElement).fontSize);
-  // console.log("Current Bottom: ", currentBottom);
-  // console.log("Current Bottom Rem: ", currentBottomRem);
-  console.log(liftElement);
-  // console.log("Current Floor: ", lift.currentFloor);
-  // console.log("Target Floor: ", lift.targetFloor);
-  if (lift.currentFloor < lift.targetFloor) {
-    console.log("MoveUp");
-    liftElement.style.transition = `bottom ${2 * Math.abs(lift.targetFloor - lift.currentFloor)}s ease-in-out`
-    liftElement.style.bottom = `${currentBottomRem + (8*(lift.targetFloor - lift.currentFloor))}rem`//`${8 * lift.targetFloor - lift.currentFloor}rem`  
-  } else {
-    console.log("MoveDown");
-    liftElement.style.transition = `bottom ${2 * Math.abs(lift.targetFloor - lift.currentFloor)}s ease-in-out`
-    liftElement.style.bottom = `${currentBottomRem + (8*(lift.targetFloor - lift.currentFloor))}rem`
-    
-  }
+const checkIfLiftAlreadyPresent = function(floorCall){
+  // console.log("LiftStatus: ", liftStatus);
+  return liftStatus.filter(lift=>lift.currentFloor == floorCall || lift.targetFloor == floorCall);
+}
 
-  
+const openDoors = function(liftElement, lift){
   // animation for opening door
   const childLift = liftElement.children
   // console.log("ChildLift: ", childLift);
@@ -51,19 +34,50 @@ const moveLift = function(lift){
       lift.currentFloor = lift.targetFloor
       lift.direction = null;
       lift.targetFloor = null;
+
     }, 2500); 
 
-  }, 2500)//(2 * Math.abs(lift.targetFloor - lift.currentFloor))*1000)
-
-
-
+  }, (2 * Math.abs(lift.targetFloor - lift.currentFloor))*1000)
 
   // console.log("After Lift Status: ", liftStatus);
   
 }
 
-const selectLift = function(targetdirection, floorCall){
+// TODO verify dry run and other scenarios of this logic
+const moveLift = function(lift){
+  // console.log("Before Lift Status: ", liftStatus);
+  const liftElement = document.getElementsByClassName(`lift-${lift.liftNo}`)[0]
+  const currentBottom = parseFloat(getComputedStyle(liftElement).bottom)
+  const currentBottomRem = currentBottom / parseFloat(getComputedStyle(document.documentElement).fontSize);
+  // console.log("Current Bottom: ", currentBottom);
+  // console.log("Current Bottom Rem: ", currentBottomRem);
+  // console.log(liftElement);
+  // console.log("Current Floor: ", lift.currentFloor);
+  // console.log("Target Floor: ", lift.targetFloor);
+  if (lift.currentFloor < lift.targetFloor) {
+    console.log("MoveUp");
+    liftElement.style.transition = `bottom ${2 * Math.abs(lift.targetFloor - lift.currentFloor)}s ease-in-out`
+    liftElement.style.bottom = `${currentBottomRem + (8*(lift.targetFloor - lift.currentFloor))}rem`//`${8 * lift.targetFloor - lift.currentFloor}rem`  
+  } else {
+    console.log("MoveDown");
+    liftElement.style.transition = `bottom ${2 * Math.abs(lift.targetFloor - lift.currentFloor)}s ease-in-out`
+    liftElement.style.bottom = `${currentBottomRem + (8*(lift.targetFloor - lift.currentFloor))}rem`
+    
+  }
+
+  openDoors(liftElement, lift)
   
+}
+
+const selectLift = function(targetdirection, floorCall){
+  const liftPresent = checkIfLiftAlreadyPresent(floorCall)
+  // console.log("LiftPresent: ", liftPresent);
+  if(liftPresent.length > 0){
+    const liftElement = document.getElementsByClassName(`lift-${liftPresent[0].liftNo}`)[0]
+    // console.log("LiftElement: ", liftElement);
+    openDoors(liftElement, liftPresent)
+    return
+  }
   // Choose the first idle lift
   const idleLift = liftStatus.find((lift) => lift.direction === null && lift.currentFloor === floorCall);
 
@@ -96,12 +110,17 @@ const liftController = function(button){
   console.log("Target Direction: ", targetDirection);
 
   const closestLift = selectLift(targetDirection, floorCall)
-  console.log("Closest Lift: ", closestLift);
-  // Update elevator's destination floor and direction
-  closestLift.targetFloor = parseInt(floorCall);
-  closestLift.direction = targetDirection;
+  if(closestLift){
 
-  moveLift(closestLift)
+    // console.log("Closest Lift: ", closestLift);
+    // Update elevator's destination floor and direction
+    closestLift.targetFloor = parseInt(floorCall);
+    closestLift.direction = targetDirection;
+  
+    moveLift(closestLift)
+  }else{
+    console.log("Lift already present on floor");
+  }
 
 }
 
