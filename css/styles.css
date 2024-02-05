@@ -133,7 +133,6 @@ button img {
   width: 50px; 
   height: 80px;
   border: solid 1px #000;
-  transition: bottom 2s ease-in-out;
   overflow-x: hidden;
 }
 
