@@ -187,6 +187,16 @@ const renderBuildingMap = function(numOfFloors, numOfLifts){
     elevatorContainer.className = 'elevator-container'
     document.body.appendChild(elevatorContainer)
 
+    // Add back on top left
+    const backButton = document.createElement('button')
+    backButton.className = 'button back-button'
+    backButton.id = 'back-button'
+    backButton.innerHTML = 'Back'
+    backButton.addEventListener('click', function(){
+      location.reload()
+    })
+    elevatorContainer.appendChild(backButton)
+
     for(let i = numOfFloors; i>=1;i--){
 
         const floorContainer = document.createElement('div')

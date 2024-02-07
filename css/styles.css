@@ -118,6 +118,11 @@ button img {
   background-color: #BDBDBD;
 }
 
+.back-button {
+  display: block;
+  width: 5%;
+}
+
 .lift {
   width: 100%;
   height: 100%;
@@ -182,4 +187,7 @@ footer a {
     height: 50px;
   }
 
+  .back-button {
+    width: 20%;
+  }
 }
