@@ -1,6 +1,10 @@
 
 
 let liftStatus = []
+
+// Define a global variable to store pending requests
+const pendingRequests = [];
+
 const createLiftState = function(numOfLifts){
 
     for(let i = 1;i<=numOfLifts;i++){
@@ -15,13 +19,23 @@ const createLiftState = function(numOfLifts){
 
 }
 
+const delay = function(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+};
+
 const checkIfLiftAlreadyPresent = function(floorCall){
   // console.log("LiftStatus: ", liftStatus);
   return liftStatus.filter(lift=>lift.currentFloor == floorCall || lift.targetFloor == floorCall);
 }
 
+// Add a function to add a request to the pending request queue
+const addPendingRequest = function(direction, floorNumber) {
+  pendingRequests.push({ direction, floorNumber });
+}
+
 const openDoors = function(liftElement, lift){
   // animation for opening door
+  console.log("opening doors");
   const childLift = liftElement.children
   // console.log("ChildLift: ", childLift);
   setTimeout(() => {
@@ -30,21 +44,22 @@ const openDoors = function(liftElement, lift){
     setTimeout(() => {
       childLift[0].style.transform = 'translateX(0)';
 
+    }, 2500); 
+
+    setTimeout(()=>{
       // Update elevator's state
       lift.currentFloor = lift.targetFloor
       lift.direction = null;
       lift.targetFloor = null;
-
-    }, 2500); 
+    }, 2500)
 
   }, (2 * Math.abs(lift.targetFloor - lift.currentFloor))*1000)
-
-  // console.log("After Lift Status: ", liftStatus);
+ 
   
 }
 
 // TODO verify dry run and other scenarios of this logic
-const moveLift = function(lift){
+const moveLift = async function(lift){
   // console.log("Before Lift Status: ", liftStatus);
   const liftElement = document.getElementsByClassName(`lift-${lift.liftNo}`)[0]
   const currentBottom = parseFloat(getComputedStyle(liftElement).bottom)
@@ -66,6 +81,9 @@ const moveLift = function(lift){
   }
 
   openDoors(liftElement, lift)
+  await delay((2 * Math.abs(lift.targetFloor - lift.currentFloor))*1000 + 2500)
+  // Check pending requests after each move
+  checkPendingRequests();
   
 }
 
@@ -102,6 +120,24 @@ const selectLift = function(targetdirection, floorCall){
   return closestLift;
 }
 
+const checkPendingRequests = function() {
+  // Check if any lift becomes idle and there are pending requests
+  // Assign the lift to the next pending request if available
+  console.log("Checking pending requests queue");
+  console.log("Pending Requests Queue: ", pendingRequests);
+  for (const lift of liftStatus) {
+    if (lift.direction === null && pendingRequests.length > 0) {
+      const nextRequest = pendingRequests.shift();
+      const assignedLift = selectLift(nextRequest.direction, nextRequest.floorNumber);
+      if (assignedLift) {
+        assignedLift.targetFloor = nextRequest.floorNumber;
+        assignedLift.direction = nextRequest.direction;
+        moveLift(assignedLift);
+      }
+    }
+  }
+}
+
 const liftController = function(button){
 
   const floorCall = button.dataset.floor
@@ -119,8 +155,11 @@ const liftController = function(button){
   
     moveLift(closestLift)
   }else{
-    console.log("Lift already present on floor");
-  }
+      // If no lift is available, add the request to the pending request queue
+      addPendingRequest(targetDirection, floorCall);
+      console.log(`Added floor call: ${floorCall} to pending requests queue.`);
+    }
+  
 
 }
 
