@@ -12,6 +12,7 @@ const createLiftState = function(numOfLifts){
         liftStatus.push({
             liftNo: i,
             currentFloor : 1,
+            openDoors : false,
             direction : null,
             targetFloor : null
         })
@@ -25,7 +26,7 @@ const delay = function(ms) {
 
 const checkIfLiftAlreadyPresent = function(floorCall){
   // console.log("LiftStatus: ", liftStatus);
-  return liftStatus.filter(lift=>lift.currentFloor == floorCall || lift.targetFloor == floorCall);
+  return liftStatus.filter(lift=>lift.currentFloor == floorCall || lift.targetFloor == floorCall); //&& lift.direction == null && (lift.targetFloor == null || lift.targetFloor == floorCall)
 }
 
 // Add a function to add a request to the pending request queue
@@ -51,6 +52,7 @@ const openDoors = function(liftElement, lift){
       lift.currentFloor = lift.targetFloor
       lift.direction = null;
       lift.targetFloor = null;
+      lift.openDoors = false
     }, 2500)
 
   }, (2 * Math.abs(lift.targetFloor - lift.currentFloor))*1000)
@@ -60,7 +62,7 @@ const openDoors = function(liftElement, lift){
 
 // TODO verify dry run and other scenarios of this logic
 const moveLift = async function(lift){
-  // console.log("Before Lift Status: ", liftStatus);
+  console.log("Before Lift Status: ", liftStatus);
   const liftElement = document.getElementsByClassName(`lift-${lift.liftNo}`)[0]
   const currentBottom = parseFloat(getComputedStyle(liftElement).bottom)
   const currentBottomRem = currentBottom / parseFloat(getComputedStyle(document.documentElement).fontSize);
@@ -81,10 +83,12 @@ const moveLift = async function(lift){
   }
 
   openDoors(liftElement, lift)
-  await delay((2 * Math.abs(lift.targetFloor - lift.currentFloor))*1000 + 2500)
+
+  // add delay of 2500 for 1st timer and 2500 for 2nd timer
+  await delay((2 * Math.abs(lift.targetFloor - lift.currentFloor))*1000 + 2500 + 2500)
+  
   // Check pending requests after each move
   checkPendingRequests();
-  
 }
 
 const selectLift = function(targetdirection, floorCall){
@@ -93,7 +97,9 @@ const selectLift = function(targetdirection, floorCall){
   if(liftPresent.length > 0){
     const liftElement = document.getElementsByClassName(`lift-${liftPresent[0].liftNo}`)[0]
     // console.log("LiftElement: ", liftElement);
-    openDoors(liftElement, liftPresent)
+    if(!liftPresent[0].openDoors){
+      openDoors(liftElement, liftPresent)
+    }
     return
   }
   // Choose the first idle lift
@@ -107,7 +113,7 @@ const selectLift = function(targetdirection, floorCall){
   const eligibleLifts = liftStatus.filter(
     (lift) =>
       lift.direction === null ||
-      (lift.direction === targetdirection && lift.currentFloor === floorCall)
+      (lift.currentFloor === floorCall)
   );
 
   // If all lifts are busy, choose the one with the least distance to the calling floor
@@ -152,8 +158,11 @@ const liftController = function(button){
     // Update elevator's destination floor and direction
     closestLift.targetFloor = parseInt(floorCall);
     closestLift.direction = targetDirection;
+    closestLift.openDoors = true
   
     moveLift(closestLift)
+
+
   }else{
       // If no lift is available, add the request to the pending request queue
       addPendingRequest(targetDirection, floorCall);
