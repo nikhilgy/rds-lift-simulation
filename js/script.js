@@ -2,8 +2,10 @@
 
 let liftStatus = []
 
-// Define a global variable to store pending requests
-const pendingRequests = [];
+// A global variable to store pending requests
+let pendingRequests = [];
+// A global variable to store ongoing requests
+let ongoingRequests = []
 
 const createLiftState = function(numOfLifts){
 
@@ -26,12 +28,36 @@ const delay = function(ms) {
 
 const checkIfLiftAlreadyPresent = function(floorCall){
   // console.log("LiftStatus: ", liftStatus);
-  return liftStatus.filter(lift=>lift.currentFloor == floorCall || lift.targetFloor == floorCall); //&& lift.direction == null && (lift.targetFloor == null || lift.targetFloor == floorCall)
+  return liftStatus.filter(lift=>lift.currentFloor == floorCall || lift.targetFloor == floorCall && lift.direction == null); // && (lift.targetFloor == null || lift.targetFloor == floorCall)
+}
+
+const checkIfDuplicatePendingRequest = function(targetDirection, floorCall){
+  return pendingRequests
+  .map(req => `${req.floorNumber}-${req.direction}`)
+  .find(req=> req == `${floorCall}-${targetDirection}`)
+}
+
+// Add a function add ongoingRequest
+const addOngoingRequest = function(direction, floorNumber){
+  ongoingRequests.push({ direction, floorNumber })
 }
 
 // Add a function to add a request to the pending request queue
 const addPendingRequest = function(direction, floorNumber) {
   pendingRequests.push({ direction, floorNumber });
+}
+
+//Add a function to remove ongoingRequest
+const removeOngoingRequest = function(direction, floorNumber){
+  ongoingRequests = ongoingRequests
+                    .filter(req => req.direction != direction && req.floorNumber != floorNumber)
+}
+
+
+const checkIfDuplicateOngoingRequest = function(targetDirection, floorCall){
+  return ongoingRequests
+  .map(req => `${req.floorNumber}-${req.direction}`)
+  .find(req=> req == `${floorCall}-${targetDirection}`)
 }
 
 const openDoors = function(liftElement, lift){
@@ -45,15 +71,20 @@ const openDoors = function(liftElement, lift){
     setTimeout(() => {
       childLift[0].style.transform = 'translateX(0)';
 
+      setTimeout(()=>{
+        // remove from ongoing requests
+        removeOngoingRequest(lift.direction, lift.targetFloor)
+
+        // Update elevator's state
+        lift.currentFloor = lift.targetFloor
+        lift.direction = null;
+        lift.targetFloor = null;
+        lift.openDoors = false
+      }, 2500)
+
     }, 2500); 
 
-    setTimeout(()=>{
-      // Update elevator's state
-      lift.currentFloor = lift.targetFloor
-      lift.direction = null;
-      lift.targetFloor = null;
-      lift.openDoors = false
-    }, 2500)
+    
 
   }, (2 * Math.abs(lift.targetFloor - lift.currentFloor))*1000)
  
@@ -138,6 +169,7 @@ const checkPendingRequests = function() {
       if (assignedLift) {
         assignedLift.targetFloor = nextRequest.floorNumber;
         assignedLift.direction = nextRequest.direction;
+        assignedLift.openDoors = true
         moveLift(assignedLift);
       }
     }
@@ -151,9 +183,21 @@ const liftController = function(button){
   console.log("Floor Call: ", floorCall);
   console.log("Target Direction: ", targetDirection);
 
-  const closestLift = selectLift(targetDirection, floorCall)
-  if(closestLift){
+  //check if duplicate requst in pending request
+  if(checkIfDuplicatePendingRequest(targetDirection,floorCall)){
+    console.log("duplicate pending request");
+    return
+  }else if(checkIfDuplicateOngoingRequest(targetDirection, floorCall)){
+    console.log("duplicate ongoing request");
+    return 
+  }
 
+  const closestLift = selectLift(targetDirection, floorCall)
+  
+  
+  if(closestLift){
+    // add to ongoingRequests lift
+    addOngoingRequest(targetDirection, floorCall)
     // console.log("Closest Lift: ", closestLift);
     // Update elevator's destination floor and direction
     closestLift.targetFloor = parseInt(floorCall);
@@ -164,12 +208,22 @@ const liftController = function(button){
 
 
   }else{
-      // If no lift is available, add the request to the pending request queue
+    //check if duplicate requst in pending request
+    // if(checkIfDuplicatePendingRequest(targetDirection,floorCall)){
+    //   console.log("duplicate pending request");
+    //   return
+    // }else if(checkIfDuplicateOngoingRequest(targetDirection, floorCall)){
+    //   console.log("duplicate ongoing request");
+    //   return 
+    // }
+    
+    // If no lift is available, add the request to the pending request queue
       addPendingRequest(targetDirection, floorCall);
       console.log(`Added floor call: ${floorCall} to pending requests queue.`);
     }
   
-
+    // console.log("pending requests: ", pendingRequests);
+    // console.log("ongoing requests: ", ongoingRequests);
 }
 
 const renderBuildingMap = function(numOfFloors, numOfLifts){
