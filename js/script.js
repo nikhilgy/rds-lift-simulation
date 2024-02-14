@@ -28,7 +28,7 @@ const delay = function(ms) {
 
 const checkIfLiftAlreadyPresent = function(floorCall){
   // console.log("LiftStatus: ", liftStatus);
-  return liftStatus.filter(lift=>lift.currentFloor == floorCall || lift.targetFloor == floorCall && lift.direction == null); // && (lift.targetFloor == null || lift.targetFloor == floorCall)
+  return liftStatus.filter(lift=>lift.currentFloor == floorCall || (lift.targetFloor == floorCall && lift.direction == null)); // && (lift.targetFloor == null || lift.targetFloor == floorCall)
 }
 
 const checkIfDuplicatePendingRequest = function(targetDirection, floorCall){
@@ -116,15 +116,16 @@ const moveLift = async function(lift){
   openDoors(liftElement, lift)
 
   // add delay of 2500 for 1st timer and 2500 for 2nd timer
-  await delay((2 * Math.abs(lift.targetFloor - lift.currentFloor))*1000 + 2500 + 2500)
+  await delay((2 * Math.abs(lift.targetFloor - lift.currentFloor))*1000 + 2500 + 2500 + 100)
   
+  console.log(`Now checking pending requests after completed movement of ${lift.liftNo}`);
   // Check pending requests after each move
   checkPendingRequests();
 }
 
 const selectLift = function(targetdirection, floorCall){
   const liftPresent = checkIfLiftAlreadyPresent(floorCall)
-  // console.log("LiftPresent: ", liftPresent);
+  console.log("LiftPresent: ", liftPresent);
   if(liftPresent.length > 0){
     const liftElement = document.getElementsByClassName(`lift-${liftPresent[0].liftNo}`)[0]
     // console.log("LiftElement: ", liftElement);
@@ -143,8 +144,7 @@ const selectLift = function(targetdirection, floorCall){
   // If all elevators are busy or in the opposite direction, choose the one with the least distance to the calling floor
   const eligibleLifts = liftStatus.filter(
     (lift) =>
-      lift.direction === null ||
-      (lift.currentFloor === floorCall)
+      lift.direction === null 
   );
 
   // If all lifts are busy, choose the one with the least distance to the calling floor
@@ -208,14 +208,6 @@ const liftController = function(button){
 
 
   }else{
-    //check if duplicate requst in pending request
-    // if(checkIfDuplicatePendingRequest(targetDirection,floorCall)){
-    //   console.log("duplicate pending request");
-    //   return
-    // }else if(checkIfDuplicateOngoingRequest(targetDirection, floorCall)){
-    //   console.log("duplicate ongoing request");
-    //   return 
-    // }
     
     // If no lift is available, add the request to the pending request queue
       addPendingRequest(targetDirection, floorCall);
