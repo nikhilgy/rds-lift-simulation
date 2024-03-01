@@ -16,7 +16,8 @@ const createLiftState = function(numOfLifts){
             currentFloor : 1,
             openDoors : false,
             direction : null,
-            targetFloor : null
+            targetFloor : null,
+            isMoving: false
         })
     }
 
@@ -28,7 +29,7 @@ const delay = function(ms) {
 
 const checkIfLiftAlreadyPresent = function(floorCall){
   // console.log("LiftStatus: ", liftStatus);
-  return liftStatus.filter(lift=>lift.currentFloor == floorCall || (lift.targetFloor == floorCall && lift.direction == null)); // && (lift.targetFloor == null || lift.targetFloor == floorCall)
+  return liftStatus.filter(lift=>(lift.currentFloor == floorCall || (lift.targetFloor == floorCall && lift.direction == null) && !lift.isMoving)); // && (lift.targetFloor == null || lift.targetFloor == floorCall)
 }
 
 const checkIfDuplicatePendingRequest = function(targetDirection, floorCall){
@@ -53,6 +54,11 @@ const removeOngoingRequest = function(direction, floorNumber){
                     .filter(req => req.direction != direction && req.floorNumber != floorNumber)
 }
 
+//Add a function to remove pendingRequest
+const removePendingRequest = function(direction, floorNumber){
+  pendingRequests = pendingRequests
+                    .filter(req => req.direction != direction && req.floorNumber != floorNumber)
+}
 
 const checkIfDuplicateOngoingRequest = function(targetDirection, floorCall){
   return ongoingRequests
@@ -80,6 +86,7 @@ const openDoors = function(liftElement, lift){
         lift.direction = null;
         lift.targetFloor = null;
         lift.openDoors = false
+        lift.isMoving = false
       }, 2500)
 
     }, 2500); 
@@ -132,6 +139,10 @@ const selectLift = function(targetdirection, floorCall){
     if(!liftPresent[0].openDoors){
       openDoors(liftElement, liftPresent)
     }
+    console.log("Pending Requests: ", pendingRequests);
+    removePendingRequest(targetdirection, floorCall)
+    console.log("Pending Requests: ", pendingRequests);
+    
     return
   }
   // Choose the first idle lift
@@ -170,6 +181,7 @@ const checkPendingRequests = function() {
         assignedLift.targetFloor = nextRequest.floorNumber;
         assignedLift.direction = nextRequest.direction;
         assignedLift.openDoors = true
+        assignedLift.isMoving = true
         moveLift(assignedLift);
       }
     }
